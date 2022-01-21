@@ -37,6 +37,20 @@ function executeQuery(
   return execute({ schema, document: parse(query), rootValue, variableValues });
 }
 
+async function executeQueryAsync(
+  query: string,
+  rootValue: unknown,
+  variableValues?: { [variable: string]: unknown },
+): Promise<ExecutionResult> {
+  const result = await execute({
+    schema,
+    document: parse(query),
+    rootValue,
+    variableValues,
+  });
+  return result;
+}
+
 describe('Execute: Handles Oneof Input Objects and Oneof Objects', () => {
   describe('Oneof Input Objects', () => {
     const rootValue = {
@@ -132,6 +146,125 @@ describe('Execute: Handles Oneof Input Objects and Oneof Objects', () => {
             locations: [{ column: 16, line: 2 }],
             message:
               'Variable "$input" got invalid value { a: "abc", b: 123 }; Exactly one key must be specified.',
+          },
+        ],
+      });
+    });
+  });
+
+  describe('Oneof Objects', () => {
+    const query = `
+        query ($input: TestInputObject! = {a: "abc"}) {
+          test(input: $input) {
+            a
+            b
+          }
+        }
+      `;
+
+    it('works with a single, non-null value', () => {
+      const rootValue = {
+        test: {
+          a: null,
+          b: 123,
+        },
+      };
+      const result = executeQuery(query, rootValue);
+
+      expectJSON(result).toDeepEqual({
+        data: {
+          test: {
+            a: null,
+            b: 123,
+          },
+        },
+      });
+    });
+
+    it('works with a single, non-null, async value', async () => {
+      const rootValue = {
+        test() {
+          return {
+            a: null,
+            b: () => new Promise((resolve) => resolve(123)),
+          };
+        },
+      };
+      const result = await executeQueryAsync(query, rootValue);
+
+      expectJSON(result).toDeepEqual({
+        data: {
+          test: {
+            a: null,
+            b: 123,
+          },
+        },
+      });
+    });
+
+    it('errors when there are no non-null values', () => {
+      const rootValue = {
+        test: {
+          a: null,
+          b: null,
+        },
+      };
+      const result = executeQuery(query, rootValue);
+
+      expectJSON(result).toDeepEqual({
+        data: { test: null },
+        errors: [
+          {
+            locations: [{ column: 11, line: 3 }],
+            message:
+              'Oneof Object "TestObject" must have exactly one non-null field but got 0.',
+            path: ['test'],
+          },
+        ],
+      });
+    });
+
+    it('errors when there are multiple non-null values', () => {
+      const rootValue = {
+        test: {
+          a: 'abc',
+          b: 456,
+        },
+      };
+      const result = executeQuery(query, rootValue);
+
+      expectJSON(result).toDeepEqual({
+        data: { test: null },
+        errors: [
+          {
+            locations: [{ column: 11, line: 3 }],
+            message:
+              'Oneof Object "TestObject" must have exactly one non-null field but got 2.',
+            path: ['test'],
+          },
+        ],
+      });
+    });
+
+    it('errors when there are multiple non-null, async values', async () => {
+      const rootValue = {
+        test() {
+          return {
+            a: 'abc',
+            b: () => new Promise((resolve) => resolve(123)),
+          };
+        },
+      };
+      const result = await executeQueryAsync(query, rootValue);
+
+      expectJSON(result).toDeepEqual({
+        data: { test: null },
+        errors: [
+          {
+            locations: [{ column: 11, line: 3 }],
+            message:
+              'Oneof Object "TestObject" must have exactly one non-null field but got 2.',
+            path: ['test'],
           },
         ],
       });
