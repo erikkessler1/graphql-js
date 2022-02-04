@@ -323,7 +323,7 @@ function validateOneOfObjectField(
 ): void {
   if (isNonNullType(field.type)) {
     context.reportError(
-      `Field ${type.name}.${field.name} must be nullable as it is part of a Oneof Type.`,
+      `Field ${type.name}.${field.name} must be nullable as it is part of a OneOf Type.`,
       field.astNode?.type,
     );
   }
@@ -563,14 +563,14 @@ function validateOneOfInputObjectField(
 ): void {
   if (isNonNullType(field.type)) {
     context.reportError(
-      `Oneof input field ${type.name}.${field.name} must be nullable.`,
+      `OneOf input field ${type.name}.${field.name} must be nullable.`,
       field.astNode?.type,
     );
   }
 
   if (field.defaultValue) {
     context.reportError(
-      `Oneof input field ${type.name}.${field.name} cannot have a default value.`,
+      `OneOf input field ${type.name}.${field.name} cannot have a default value.`,
       field.astNode,
     );
   }

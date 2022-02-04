@@ -197,7 +197,7 @@ function validateOneOfInputObject(
   if (isNotExactlyOneField) {
     context.reportError(
       new GraphQLError(
-        `Oneof Input Object "${type.name}" must specify exactly one key.`,
+        `OneOf Input Object "${type.name}" must specify exactly one key.`,
         node,
       ),
     );
@@ -226,7 +226,7 @@ function validateOneOfInputObject(
     if (isNullableVariable) {
       context.reportError(
         new GraphQLError(
-          `Variable "${variableName}" must be non-nullable to be used for Oneof Input Object "${type.name}".`,
+          `Variable "${variableName}" must be non-nullable to be used for OneOf Input Object "${type.name}".`,
           node,
         ),
       );

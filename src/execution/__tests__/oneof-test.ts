@@ -51,8 +51,8 @@ async function executeQueryAsync(
   return result;
 }
 
-describe('Execute: Handles Oneof Input Objects and Oneof Objects', () => {
-  describe('Oneof Input Objects', () => {
+describe('Execute: Handles OneOf Input Objects and OneOf Objects', () => {
+  describe('OneOf Input Objects', () => {
     const rootValue = {
       test({ input }: { input: { a?: string; b?: number } }) {
         return input;
@@ -152,7 +152,7 @@ describe('Execute: Handles Oneof Input Objects and Oneof Objects', () => {
     });
   });
 
-  describe('Oneof Objects', () => {
+  describe('OneOf Objects', () => {
     const query = `
         query ($input: TestInputObject! = {a: "abc"}) {
           test(input: $input) {
@@ -217,7 +217,7 @@ describe('Execute: Handles Oneof Input Objects and Oneof Objects', () => {
           {
             locations: [{ column: 11, line: 3 }],
             message:
-              'Oneof Object "TestObject" must have exactly one non-null field but got 0.',
+              'OneOf Object "TestObject" must have exactly one non-null field but got 0.',
             path: ['test'],
           },
         ],
@@ -239,7 +239,7 @@ describe('Execute: Handles Oneof Input Objects and Oneof Objects', () => {
           {
             locations: [{ column: 11, line: 3 }],
             message:
-              'Oneof Object "TestObject" must have exactly one non-null field but got 2.',
+              'OneOf Object "TestObject" must have exactly one non-null field but got 2.',
             path: ['test'],
           },
         ],
@@ -263,7 +263,7 @@ describe('Execute: Handles Oneof Input Objects and Oneof Objects', () => {
           {
             locations: [{ column: 11, line: 3 }],
             message:
-              'Oneof Object "TestObject" must have exactly one non-null field but got 2.',
+              'OneOf Object "TestObject" must have exactly one non-null field but got 2.',
             path: ['test'],
           },
         ],

@@ -998,7 +998,7 @@ function validateOneOfValue(
 
   if (nonNullCount !== 1) {
     throw new GraphQLError(
-      `Oneof Object "${returnType.name}" must have exactly one non-null field but got ${nonNullCount}.`,
+      `OneOf Object "${returnType.name}" must have exactly one non-null field but got ${nonNullCount}.`,
       fieldNodes,
     );
   }

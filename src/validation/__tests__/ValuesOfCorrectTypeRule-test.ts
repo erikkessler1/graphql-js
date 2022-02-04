@@ -874,7 +874,7 @@ describe('Validate: Values of correct type', () => {
     });
   });
 
-  describe('Valid oneof input object value', () => {
+  describe('Valid oneOf input object value', () => {
     it('Exactly one field', () => {
       expectValid(`
         {
@@ -1063,7 +1063,7 @@ describe('Validate: Values of correct type', () => {
     });
   });
 
-  describe('Invalid oneof input object value', () => {
+  describe('Invalid oneOf input object value', () => {
     it('Invalid field type', () => {
       expectErrors(`
         {
@@ -1104,7 +1104,7 @@ describe('Validate: Values of correct type', () => {
       `).toDeepEqual([
         {
           message:
-            'Variable "string" must be non-nullable to be used for Oneof Input Object "OneOfInput".',
+            'Variable "string" must be non-nullable to be used for OneOf Input Object "OneOfInput".',
           locations: [{ line: 4, column: 37 }],
         },
       ]);
@@ -1120,7 +1120,7 @@ describe('Validate: Values of correct type', () => {
       `).toDeepEqual([
         {
           message:
-            'Oneof Input Object "OneOfInput" must specify exactly one key.',
+            'OneOf Input Object "OneOfInput" must specify exactly one key.',
           locations: [{ line: 4, column: 37 }],
         },
       ]);

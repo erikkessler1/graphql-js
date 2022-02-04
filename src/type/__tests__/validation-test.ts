@@ -1663,7 +1663,7 @@ describe('Type System: Input Object fields must have input types', () => {
   });
 });
 
-describe('Type System: Oneof Object fields must be nullable', () => {
+describe('Type System: OneOf Object fields must be nullable', () => {
   it('rejects non-nullable fields', () => {
     const schema = buildSchema(`
       type Query {
@@ -1678,14 +1678,14 @@ describe('Type System: Oneof Object fields must be nullable', () => {
     expectJSON(validateSchema(schema)).toDeepEqual([
       {
         message:
-          'Field SomeObject.b must be nullable as it is part of a Oneof Type.',
+          'Field SomeObject.b must be nullable as it is part of a OneOf Type.',
         locations: [{ line: 8, column: 12 }],
       },
     ]);
   });
 });
 
-describe('Type System: Oneof Input Object fields must be nullable', () => {
+describe('Type System: OneOf Input Object fields must be nullable', () => {
   it('rejects non-nullable fields', () => {
     const schema = buildSchema(`
       type Query {
@@ -1699,7 +1699,7 @@ describe('Type System: Oneof Input Object fields must be nullable', () => {
     `);
     expectJSON(validateSchema(schema)).toDeepEqual([
       {
-        message: 'Oneof input field SomeInputObject.b must be nullable.',
+        message: 'OneOf input field SomeInputObject.b must be nullable.',
         locations: [{ line: 8, column: 12 }],
       },
     ]);
@@ -1719,7 +1719,7 @@ describe('Type System: Oneof Input Object fields must be nullable', () => {
     expectJSON(validateSchema(schema)).toDeepEqual([
       {
         message:
-          'Oneof input field SomeInputObject.b cannot have a default value.',
+          'OneOf input field SomeInputObject.b cannot have a default value.',
         locations: [{ line: 8, column: 9 }],
       },
     ]);

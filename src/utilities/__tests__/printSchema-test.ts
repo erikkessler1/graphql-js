@@ -657,7 +657,7 @@ describe('Type System Printer', () => {
       ) on SCALAR
 
       """
-      Indicates an Object is a Oneof Object or an Input Object is a Oneof Input Object.
+      Indicates an Object is a OneOf Object or an Input Object is a OneOf Input Object.
       """
       directive @oneOf on OBJECT | INPUT_OBJECT
 
