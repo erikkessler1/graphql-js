@@ -29,6 +29,7 @@ words:
   - graphiql
   - sublinks
   - instanceof
+  - oneof
 
   # Different names used inside tests
   - Skywalker
