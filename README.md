@@ -4,7 +4,6 @@ The JavaScript reference implementation for GraphQL, a query language for APIs c
 
 [![npm version](https://badge.fury.io/js/graphql.svg)](https://badge.fury.io/js/graphql)
 [![Build Status](https://github.com/graphql/graphql-js/workflows/CI/badge.svg?branch=main)](https://github.com/graphql/graphql-js/actions?query=branch%3Amain)
-[![Coverage Status](https://codecov.io/gh/graphql/graphql-js/branch/main/graph/badge.svg)](https://codecov.io/gh/graphql/graphql-js)
 
 See more complete documentation at https://graphql.org/ and
 https://graphql.org/graphql-js/.
@@ -114,16 +113,6 @@ directly on this branch:
 ```
 npm install graphql@git://github.com/graphql/graphql-js.git#npm
 ```
-
-### Experimental features
-
-Each release of GraphQL.js will be accompanied by an experimental release containing support for the `@defer` and `@stream` directive proposal. We are hoping to get community feedback on these releases before the proposal is accepted into the GraphQL specification. You can use this experimental release of GraphQL.js by adding the following to your project's `package.json` file.
-
-```
-"graphql": "experimental-stream-defer"
-```
-
-Community feedback on this experimental release is much appreciated and can be provided on the [issue created for this purpose](https://github.com/graphql/graphql-js/issues/2848).
 
 ### Using in a Browser
 

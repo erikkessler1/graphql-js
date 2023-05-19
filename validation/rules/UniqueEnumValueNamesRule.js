@@ -1,14 +1,8 @@
 'use strict';
-
-Object.defineProperty(exports, '__esModule', {
-  value: true,
-});
-exports.UniqueEnumValueNamesRule = UniqueEnumValueNamesRule;
-
-var _GraphQLError = require('../../error/GraphQLError.js');
-
-var _definition = require('../../type/definition.js');
-
+Object.defineProperty(exports, '__esModule', { value: true });
+exports.UniqueEnumValueNamesRule = void 0;
+const GraphQLError_js_1 = require('../../error/GraphQLError.js');
+const definition_js_1 = require('../../type/definition.js');
 /**
  * Unique enum value names
  *
@@ -17,55 +11,49 @@ var _definition = require('../../type/definition.js');
 function UniqueEnumValueNamesRule(context) {
   const schema = context.getSchema();
   const existingTypeMap = schema ? schema.getTypeMap() : Object.create(null);
-  const knownValueNames = Object.create(null);
+  const knownValueNames = new Map();
   return {
     EnumTypeDefinition: checkValueUniqueness,
     EnumTypeExtension: checkValueUniqueness,
   };
-
   function checkValueUniqueness(node) {
-    var _node$values;
-
     const typeName = node.name.value;
-
-    if (!knownValueNames[typeName]) {
-      knownValueNames[typeName] = Object.create(null);
-    } // FIXME: https://github.com/graphql/graphql-js/issues/2203
-
+    let valueNames = knownValueNames.get(typeName);
+    if (valueNames == null) {
+      valueNames = new Map();
+      knownValueNames.set(typeName, valueNames);
+    }
+    // FIXME: https://github.com/graphql/graphql-js/issues/2203
     /* c8 ignore next */
-
-    const valueNodes =
-      (_node$values = node.values) !== null && _node$values !== void 0
-        ? _node$values
-        : [];
-    const valueNames = knownValueNames[typeName];
-
+    const valueNodes = node.values ?? [];
     for (const valueDef of valueNodes) {
       const valueName = valueDef.name.value;
       const existingType = existingTypeMap[typeName];
-
       if (
-        (0, _definition.isEnumType)(existingType) &&
+        (0, definition_js_1.isEnumType)(existingType) &&
         existingType.getValue(valueName)
       ) {
         context.reportError(
-          new _GraphQLError.GraphQLError(
+          new GraphQLError_js_1.GraphQLError(
             `Enum value "${typeName}.${valueName}" already exists in the schema. It cannot also be defined in this type extension.`,
-            valueDef.name,
+            { nodes: valueDef.name },
           ),
         );
-      } else if (valueNames[valueName]) {
+        continue;
+      }
+      const knownValueName = valueNames.get(valueName);
+      if (knownValueName != null) {
         context.reportError(
-          new _GraphQLError.GraphQLError(
+          new GraphQLError_js_1.GraphQLError(
             `Enum value "${typeName}.${valueName}" can only be defined once.`,
-            [valueNames[valueName], valueDef.name],
+            { nodes: [knownValueName, valueDef.name] },
           ),
         );
       } else {
-        valueNames[valueName] = valueDef.name;
+        valueNames.set(valueName, valueDef.name);
       }
     }
-
     return false;
   }
 }
+exports.UniqueEnumValueNamesRule = UniqueEnumValueNamesRule;

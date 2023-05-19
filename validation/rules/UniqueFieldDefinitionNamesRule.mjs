@@ -4,7 +4,6 @@ import {
   isInterfaceType,
   isObjectType,
 } from '../../type/definition.mjs';
-
 /**
  * Unique field definition names
  *
@@ -13,7 +12,7 @@ import {
 export function UniqueFieldDefinitionNamesRule(context) {
   const schema = context.getSchema();
   const existingTypeMap = schema ? schema.getTypeMap() : Object.create(null);
-  const knownFieldNames = Object.create(null);
+  const knownFieldNames = new Map();
   return {
     InputObjectTypeDefinition: checkFieldUniqueness,
     InputObjectTypeExtension: checkFieldUniqueness,
@@ -22,54 +21,45 @@ export function UniqueFieldDefinitionNamesRule(context) {
     ObjectTypeDefinition: checkFieldUniqueness,
     ObjectTypeExtension: checkFieldUniqueness,
   };
-
   function checkFieldUniqueness(node) {
-    var _node$fields;
-
     const typeName = node.name.value;
-
-    if (!knownFieldNames[typeName]) {
-      knownFieldNames[typeName] = Object.create(null);
-    } // FIXME: https://github.com/graphql/graphql-js/issues/2203
-
+    let fieldNames = knownFieldNames.get(typeName);
+    if (fieldNames == null) {
+      fieldNames = new Map();
+      knownFieldNames.set(typeName, fieldNames);
+    }
+    // FIXME: https://github.com/graphql/graphql-js/issues/2203
     /* c8 ignore next */
-
-    const fieldNodes =
-      (_node$fields = node.fields) !== null && _node$fields !== void 0
-        ? _node$fields
-        : [];
-    const fieldNames = knownFieldNames[typeName];
-
+    const fieldNodes = node.fields ?? [];
     for (const fieldDef of fieldNodes) {
       const fieldName = fieldDef.name.value;
-
       if (hasField(existingTypeMap[typeName], fieldName)) {
         context.reportError(
           new GraphQLError(
             `Field "${typeName}.${fieldName}" already exists in the schema. It cannot also be defined in this type extension.`,
-            fieldDef.name,
+            { nodes: fieldDef.name },
           ),
         );
-      } else if (fieldNames[fieldName]) {
+        continue;
+      }
+      const knownFieldName = fieldNames.get(fieldName);
+      if (knownFieldName != null) {
         context.reportError(
           new GraphQLError(
             `Field "${typeName}.${fieldName}" can only be defined once.`,
-            [fieldNames[fieldName], fieldDef.name],
+            { nodes: [knownFieldName, fieldDef.name] },
           ),
         );
       } else {
-        fieldNames[fieldName] = fieldDef.name;
+        fieldNames.set(fieldName, fieldDef.name);
       }
     }
-
     return false;
   }
 }
-
 function hasField(type, fieldName) {
   if (isObjectType(type) || isInterfaceType(type) || isInputObjectType(type)) {
     return type.getFields()[fieldName] != null;
   }
-
   return false;
 }

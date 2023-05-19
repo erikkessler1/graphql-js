@@ -1,5 +1,4 @@
 import { GraphQLError } from '../../error/GraphQLError.mjs';
-
 /**
  * Unique operation types
  *
@@ -7,7 +6,7 @@ import { GraphQLError } from '../../error/GraphQLError.mjs';
  */
 export function UniqueOperationTypesRule(context) {
   const schema = context.getSchema();
-  const definedOperationTypes = Object.create(null);
+  const definedOperationTypes = new Map();
   const existingOperationTypes = schema
     ? {
         query: schema.getQueryType(),
@@ -19,42 +18,31 @@ export function UniqueOperationTypesRule(context) {
     SchemaDefinition: checkOperationTypes,
     SchemaExtension: checkOperationTypes,
   };
-
   function checkOperationTypes(node) {
-    var _node$operationTypes;
-
     // See: https://github.com/graphql/graphql-js/issues/2203
-
     /* c8 ignore next */
-    const operationTypesNodes =
-      (_node$operationTypes = node.operationTypes) !== null &&
-      _node$operationTypes !== void 0
-        ? _node$operationTypes
-        : [];
-
+    const operationTypesNodes = node.operationTypes ?? [];
     for (const operationType of operationTypesNodes) {
       const operation = operationType.operation;
-      const alreadyDefinedOperationType = definedOperationTypes[operation];
-
+      const alreadyDefinedOperationType = definedOperationTypes.get(operation);
       if (existingOperationTypes[operation]) {
         context.reportError(
           new GraphQLError(
             `Type for ${operation} already defined in the schema. It cannot be redefined.`,
-            operationType,
+            { nodes: operationType },
           ),
         );
       } else if (alreadyDefinedOperationType) {
         context.reportError(
           new GraphQLError(
             `There can be only one ${operation} type in schema.`,
-            [alreadyDefinedOperationType, operationType],
+            { nodes: [alreadyDefinedOperationType, operationType] },
           ),
         );
       } else {
-        definedOperationTypes[operation] = operationType;
+        definedOperationTypes.set(operation, operationType);
       }
     }
-
     return false;
   }
 }

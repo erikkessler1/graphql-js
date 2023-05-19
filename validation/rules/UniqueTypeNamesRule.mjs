@@ -1,12 +1,11 @@
 import { GraphQLError } from '../../error/GraphQLError.mjs';
-
 /**
  * Unique type names
  *
  * A GraphQL document is only valid if all defined types have unique names.
  */
 export function UniqueTypeNamesRule(context) {
-  const knownTypeNames = Object.create(null);
+  const knownTypeNames = new Map();
   const schema = context.getSchema();
   return {
     ScalarTypeDefinition: checkTypeName,
@@ -16,31 +15,27 @@ export function UniqueTypeNamesRule(context) {
     EnumTypeDefinition: checkTypeName,
     InputObjectTypeDefinition: checkTypeName,
   };
-
   function checkTypeName(node) {
     const typeName = node.name.value;
-
-    if (schema !== null && schema !== void 0 && schema.getType(typeName)) {
+    if (schema?.getType(typeName)) {
       context.reportError(
         new GraphQLError(
           `Type "${typeName}" already exists in the schema. It cannot also be defined in this type definition.`,
-          node.name,
+          { nodes: node.name },
         ),
       );
       return;
     }
-
-    if (knownTypeNames[typeName]) {
+    const knownNameNode = knownTypeNames.get(typeName);
+    if (knownNameNode != null) {
       context.reportError(
-        new GraphQLError(`There can be only one type named "${typeName}".`, [
-          knownTypeNames[typeName],
-          node.name,
-        ]),
+        new GraphQLError(`There can be only one type named "${typeName}".`, {
+          nodes: [knownNameNode, node.name],
+        }),
       );
     } else {
-      knownTypeNames[typeName] = node.name;
+      knownTypeNames.set(typeName, node.name);
     }
-
     return false;
   }
 }

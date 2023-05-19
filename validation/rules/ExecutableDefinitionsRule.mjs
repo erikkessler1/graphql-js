@@ -1,7 +1,6 @@
 import { GraphQLError } from '../../error/GraphQLError.mjs';
 import { Kind } from '../../language/kinds.mjs';
 import { isExecutableDefinitionNode } from '../../language/predicates.mjs';
-
 /**
  * Executable definitions
  *
@@ -21,14 +20,12 @@ export function ExecutableDefinitionsRule(context) {
               ? 'schema'
               : '"' + definition.name.value + '"';
           context.reportError(
-            new GraphQLError(
-              `The ${defName} definition is not executable.`,
-              definition,
-            ),
+            new GraphQLError(`The ${defName} definition is not executable.`, {
+              nodes: definition,
+            }),
           );
         }
       }
-
       return false;
     },
   };
