@@ -1,4 +1,5 @@
 import { GraphQLError } from '../../error/GraphQLError.ts';
+import type { NameNode } from '../../language/ast.ts';
 import type { ASTVisitor } from '../../language/visitor.ts';
 import type { ASTValidationContext } from '../ValidationContext.ts';
 /**
@@ -8,31 +9,28 @@ import type { ASTValidationContext } from '../ValidationContext.ts';
  *
  * See https://spec.graphql.org/draft/#sec-Operation-Name-Uniqueness
  */
-
 export function UniqueOperationNamesRule(
   context: ASTValidationContext,
 ): ASTVisitor {
-  const knownOperationNames = Object.create(null);
+  const knownOperationNames = new Map<string, NameNode>();
   return {
     OperationDefinition(node) {
       const operationName = node.name;
-
-      if (operationName) {
-        if (knownOperationNames[operationName.value]) {
+      if (operationName != null) {
+        const knownOperationName = knownOperationNames.get(operationName.value);
+        if (knownOperationName != null) {
           context.reportError(
             new GraphQLError(
               `There can be only one operation named "${operationName.value}".`,
-              [knownOperationNames[operationName.value], operationName],
+              { nodes: [knownOperationName, operationName] },
             ),
           );
         } else {
-          knownOperationNames[operationName.value] = operationName;
+          knownOperationNames.set(operationName.value, operationName);
         }
       }
-
       return false;
     },
-
     FragmentDefinition: () => false,
   };
 }

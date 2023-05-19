@@ -6,6 +6,7 @@ export enum TokenKind {
   SOF = '<SOF>',
   EOF = '<EOF>',
   BANG = '!',
+  QUESTION_MARK = '?',
   DOLLAR = '$',
   AMP = '&',
   PAREN_L = '(',
@@ -26,10 +27,3 @@ export enum TokenKind {
   BLOCK_STRING = 'BlockString',
   COMMENT = 'Comment',
 }
-/**
- * The enum type representing the token kinds values.
- *
- * @deprecated Please use `TokenKind`. Will be remove in v17.
- */
-
-export type TokenKindEnum = typeof TokenKind;

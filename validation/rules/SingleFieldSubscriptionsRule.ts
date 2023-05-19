@@ -16,7 +16,6 @@ import type { ValidationContext } from '../ValidationContext.ts';
  *
  * See https://spec.graphql.org/draft/#sec-Single-root-field
  */
-
 export function SingleFieldSubscriptionsRule(
   context: ValidationContext,
 ): ASTVisitor {
@@ -25,7 +24,6 @@ export function SingleFieldSubscriptionsRule(
       if (node.operation === 'subscription') {
         const schema = context.getSchema();
         const subscriptionType = schema.getSubscriptionType();
-
         if (subscriptionType) {
           const operationName = node.name ? node.name.value : null;
           const variableValues: {
@@ -33,23 +31,20 @@ export function SingleFieldSubscriptionsRule(
           } = Object.create(null);
           const document = context.getDocument();
           const fragments: ObjMap<FragmentDefinitionNode> = Object.create(null);
-
           for (const definition of document.definitions) {
             if (definition.kind === Kind.FRAGMENT_DEFINITION) {
               fragments[definition.name.value] = definition;
             }
           }
-
-          const fields = collectFields(
+          const { groupedFieldSet } = collectFields(
             schema,
             fragments,
             variableValues,
             subscriptionType,
-            node.selectionSet,
+            node,
           );
-
-          if (fields.size > 1) {
-            const fieldSelectionLists = [...fields.values()];
+          if (groupedFieldSet.size > 1) {
+            const fieldSelectionLists = [...groupedFieldSet.values()];
             const extraFieldSelectionLists = fieldSelectionLists.slice(1);
             const extraFieldSelections = extraFieldSelectionLists.flat();
             context.reportError(
@@ -57,22 +52,19 @@ export function SingleFieldSubscriptionsRule(
                 operationName != null
                   ? `Subscription "${operationName}" must select only one top level field.`
                   : 'Anonymous Subscription must select only one top level field.',
-                extraFieldSelections,
+                { nodes: extraFieldSelections },
               ),
             );
           }
-
-          for (const fieldNodes of fields.values()) {
-            const field = fieldNodes[0];
-            const fieldName = field.name.value;
-
+          for (const fieldGroup of groupedFieldSet.values()) {
+            const fieldName = fieldGroup[0].name.value;
             if (fieldName.startsWith('__')) {
               context.reportError(
                 new GraphQLError(
                   operationName != null
                     ? `Subscription "${operationName}" must not select an introspection top level field.`
                     : 'Anonymous Subscription must not select an introspection top level field.',
-                  fieldNodes,
+                  { nodes: fieldGroup },
                 ),
               );
             }

@@ -1,4 +1,5 @@
 import { GraphQLError } from '../../error/GraphQLError.ts';
+import type { NameNode } from '../../language/ast.ts';
 import type { ASTVisitor } from '../../language/visitor.ts';
 import type { ASTValidationContext } from '../ValidationContext.ts';
 /**
@@ -8,28 +9,25 @@ import type { ASTValidationContext } from '../ValidationContext.ts';
  *
  * See https://spec.graphql.org/draft/#sec-Fragment-Name-Uniqueness
  */
-
 export function UniqueFragmentNamesRule(
   context: ASTValidationContext,
 ): ASTVisitor {
-  const knownFragmentNames = Object.create(null);
+  const knownFragmentNames = new Map<string, NameNode>();
   return {
     OperationDefinition: () => false,
-
     FragmentDefinition(node) {
       const fragmentName = node.name.value;
-
-      if (knownFragmentNames[fragmentName]) {
+      const knownFragmentName = knownFragmentNames.get(fragmentName);
+      if (knownFragmentName != null) {
         context.reportError(
           new GraphQLError(
             `There can be only one fragment named "${fragmentName}".`,
-            [knownFragmentNames[fragmentName], node.name],
+            { nodes: [knownFragmentName, node.name] },
           ),
         );
       } else {
-        knownFragmentNames[fragmentName] = node.name;
+        knownFragmentNames.set(fragmentName, node.name);
       }
-
       return false;
     },
   };

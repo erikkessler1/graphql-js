@@ -1,7 +1,7 @@
 import { inspect } from '../../jsutils/inspect.ts';
 import type { Maybe } from '../../jsutils/Maybe.ts';
 import { GraphQLError } from '../../error/GraphQLError.ts';
-import type { ValueNode } from '../../language/ast.ts';
+import type { ValueNode, VariableDefinitionNode } from '../../language/ast.ts';
 import { Kind } from '../../language/kinds.ts';
 import type { ASTVisitor } from '../../language/visitor.ts';
 import type { GraphQLType } from '../../type/definition.ts';
@@ -17,24 +17,20 @@ import type { ValidationContext } from '../ValidationContext.ts';
  *
  * See https://spec.graphql.org/draft/#sec-All-Variable-Usages-are-Allowed
  */
-
 export function VariablesInAllowedPositionRule(
   context: ValidationContext,
 ): ASTVisitor {
-  let varDefMap = Object.create(null);
+  let varDefMap: Map<string, VariableDefinitionNode>;
   return {
     OperationDefinition: {
       enter() {
-        varDefMap = Object.create(null);
+        varDefMap = new Map();
       },
-
       leave(operation) {
         const usages = context.getRecursiveVariableUsages(operation);
-
         for (const { node, type, defaultValue } of usages) {
           const varName = node.name.value;
-          const varDef = varDefMap[varName];
-
+          const varDef = varDefMap.get(varName);
           if (varDef && type) {
             // A var type is allowed if it is the same or more strict (e.g. is
             // a subtype of) than the expected type. It can be more strict if
@@ -43,7 +39,6 @@ export function VariablesInAllowedPositionRule(
             // than the expected item type (contravariant).
             const schema = context.getSchema();
             const varType = typeFromAST(schema, varDef.type);
-
             if (
               varType &&
               !allowedVariableUsage(
@@ -59,7 +54,7 @@ export function VariablesInAllowedPositionRule(
               context.reportError(
                 new GraphQLError(
                   `Variable "$${varName}" of type "${varTypeStr}" used in position expecting type "${typeStr}".`,
-                  [varDef, node],
+                  { nodes: [varDef, node] },
                 ),
               );
             }
@@ -67,9 +62,8 @@ export function VariablesInAllowedPositionRule(
         }
       },
     },
-
     VariableDefinition(node) {
-      varDefMap[node.variable.name.value] = node;
+      varDefMap.set(node.variable.name.value, node);
     },
   };
 }
@@ -78,7 +72,6 @@ export function VariablesInAllowedPositionRule(
  * which includes considering if default values exist for either the variable
  * or the location at which it is located.
  */
-
 function allowedVariableUsage(
   schema: GraphQLSchema,
   varType: GraphQLType,
@@ -90,14 +83,11 @@ function allowedVariableUsage(
     const hasNonNullVariableDefaultValue =
       varDefaultValue != null && varDefaultValue.kind !== Kind.NULL;
     const hasLocationDefaultValue = locationDefaultValue !== undefined;
-
     if (!hasNonNullVariableDefaultValue && !hasLocationDefaultValue) {
       return false;
     }
-
     const nullableLocationType = locationType.ofType;
     return isTypeSubTypeOf(schema, varType, nullableLocationType);
   }
-
   return isTypeSubTypeOf(schema, varType, locationType);
 }
